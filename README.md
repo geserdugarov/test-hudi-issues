@@ -1,1 +1,1 @@
-# test-hudi-issues
+Repository for Python scripts to check [Hudi issues](https://github.com/apache/hudi/issues) reproducibility.
