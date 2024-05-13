@@ -1,37 +1,30 @@
 import os
-import shutil
 from pathlib import Path
 
-import dotenv
 import pyspark
 
+import utils
 
-curr_dir = Path(__file__).parent.parent.absolute()
-spark_home = dotenv.dotenv_values(str(curr_dir / ".env"))['SPARK_HOME']
-os.environ['SPARK_HOME'] = str(spark_home)
 
-# prepare test related temporary directory
-tmp_dir_path = "/tmp/combine-before-insert"
-if os.path.exists(tmp_dir_path):
-    shutil.rmtree(tmp_dir_path)
-
-# Settings
+# Spark cluster connection settings
+utils.set_spark_home()
 spark = (pyspark.sql.SparkSession.builder
          .master("spark://linux-pc:7077")
          .appName("combine-before-insert")
          .config("spark.sql.warehouse.dir", "/tmp/spark-warehouse")
          .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-         # .config("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar")
-         # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.hudi.catalog.HoodieCatalog")
-         # .config("spark.sql.hive.convertMetastoreParquet", "false")
          .getOrCreate())
 
-# Data
+# use current script name without .py as temporary directory name
+tmp_dir_path = str(Path("/tmp") / os.path.basename(__file__)[:-3])
+utils.prepare_temp_dirs(tmp_dir_path)
+
+# prepare Spark DataFrame for further write
 input_data = [pyspark.sql.Row(id=4, value="foo", ts=0),
               pyspark.sql.Row(id=4, value="bar", ts=1)]
 df = spark.createDataFrame(input_data)
 
-# # Example Hudi configs
+# Hudi configuration parameters
 hudi_options = {
     "hoodie.table.name": "fake_name",
     "hoodie.datasource.write.table.name": "fake_name",
@@ -54,6 +47,6 @@ hudi_options = {
  .save(tmp_dir_path))
 
 # Should be 1 but prints 2
-print(spark.read.format("hudi").load(tmp_dir_path).count())
+print(spark.read.format("org.apache.hudi").load(tmp_dir_path).count())
 # Both rows exist
-print(spark.read.format("hudi").load(tmp_dir_path).collect())
+print(spark.read.format("org.apache.hudi").load(tmp_dir_path).collect())
