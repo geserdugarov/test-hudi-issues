@@ -38,6 +38,7 @@ hudi_options = {
     # Testing out bulk insert
     "hoodie.combine.before.insert": "true",
     "hoodie.datasource.write.operation": "bulk_insert",
+    "hoodie.populate.meta.fields": "false"
 }
 
 (df.write
