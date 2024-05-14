@@ -47,7 +47,7 @@ hudi_options = {
  .mode("overwrite")
  .save(tmp_dir_path))
 
-# Should be 1 but prints 2
-print(spark.read.format("org.apache.hudi").load(tmp_dir_path).count())
+df_load = spark.read.format("org.apache.hudi").load(tmp_dir_path)
 # Both rows exist
-print(spark.read.format("org.apache.hudi").load(tmp_dir_path).collect())
+print("# of rows: ", df_load.count())
+print("Rows: ", df_load.collect())
