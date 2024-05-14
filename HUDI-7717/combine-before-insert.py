@@ -48,6 +48,8 @@ hudi_options = {
  .save(tmp_dir_path))
 
 df_load = spark.read.format("org.apache.hudi").load(tmp_dir_path)
-# Both rows exist
+# Only one row is expected
 print("# of rows: ", df_load.count())
 print("Rows: ", df_load.collect())
+
+# The issue is fixed by https://github.com/apache/hudi/pull/11216
