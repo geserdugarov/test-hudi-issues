@@ -6,18 +6,11 @@ import pyspark
 import utils
 
 
-# Spark cluster connection settings
-utils.set_spark_home()
-spark = (pyspark.sql.SparkSession.builder
-         .master("spark://linux-pc:7077")
-         .appName("combine-before-insert")
-         .config("spark.sql.warehouse.dir", "/tmp/spark-warehouse")
-         .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-         .getOrCreate())
-
-# use current script name without .py as temporary directory name
-tmp_dir_path = str(Path("/tmp") / os.path.basename(__file__)[:-3])
+# prepare environment
+script_name = os.path.basename(__file__)[:-3]
+tmp_dir_path = str(Path("/tmp") / script_name)
 utils.prepare_temp_dirs(tmp_dir_path)
+spark = utils.init_spark_env(script_name)
 
 # prepare Spark DataFrame for further write
 input_data = [pyspark.sql.Row(id=4, value="foo", ts=0),

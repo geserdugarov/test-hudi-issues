@@ -1,10 +1,19 @@
 import os
-from pathlib import Path
 
-import dotenv
+import pyspark
+
+from .configuration import configs
 
 
-def set_spark_home() -> None:
-    curr_dir = Path(__file__).parent.parent.absolute()
-    spark_home = dotenv.dotenv_values(str(curr_dir / ".env"))['SPARK_HOME']
-    os.environ['SPARK_HOME'] = str(spark_home)
+def init_spark_env(app_name: str) -> pyspark.sql.SparkSession:
+    _set_spark_home()
+    return (pyspark.sql.SparkSession.builder
+            .master(configs['SPARK_HOST_URL'])
+            .appName(app_name)
+            .config("spark.sql.warehouse.dir", configs['SPARK_WAREHOUSE_PATH'])
+            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+            .getOrCreate())
+
+
+def _set_spark_home() -> None:
+    os.environ['SPARK_HOME'] = str(configs['SPARK_HOME'])
