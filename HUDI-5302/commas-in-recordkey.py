@@ -13,8 +13,8 @@ utils.prepare_temp_dirs(tmp_dir_path)
 spark = utils.init_spark_env(script_name)
 
 # prepare Spark DataFrame for further write
-input_data = [pyspark.sql.Row(id="4,:^龥且", value="foo", ts=0),
-              pyspark.sql.Row(id="5,:Õö±•$", value="bar", ts=1)]
+input_data = [pyspark.sql.Row(id=1, name="1,,,4", addr="abc,def,ghi", price=20),
+              pyspark.sql.Row(id=2, name="5,5,5,5", addr="jkl,jkl,jkl", price=30)]
 df = spark.createDataFrame(input_data)
 
 # Hudi configuration parameters
@@ -22,10 +22,12 @@ hudi_options = {
     "hoodie.table.name": "table_name",
     "hoodie.datasource.write.table.name": "table_name",
     "hoodie.datasource.write.table.type": "COPY_ON_WRITE",
-    "hoodie.datasource.write.hive_style_partitioning": "true",
     "hoodie.datasource.write.partitionpath.field": "",
-    "hoodie.datasource.write.recordkey.field": "id",
-    "hoodie.datasource.write.precombine.field": "ts"
+    "hoodie.datasource.write.keygenerator.class": "org.apache.hudi.keygen.ComplexKeyGenerator",
+    "hoodie.datasource.write.recordkey.field": "name,addr",
+    "hoodie.datasource.write.precombine.field": "price",
+    "hoodie.index.type": "BUCKET",
+    "hoodie.bucket.index.num.buckets": "2"
 }
 
 (df.write
@@ -35,8 +37,6 @@ hudi_options = {
  .save(tmp_dir_path))
 
 df_load = spark.read.format("org.apache.hudi").load(tmp_dir_path)
-# Only one row is expected
-print("# of rows: ", df_load.count())
-print("Rows: ", df_load.select([col for col in df_load.columns if col in ['id', 'value', 'ts']]).collect())
+print("Rows: ", df_load.select([col for col in df_load.columns if col in ['id', 'name', 'addr', 'price']]).collect())
 
-# For master branch everything is ok, but for 0.15 there is NullPointerException
+# Fixed in Hudi 0.13, commit 3dc76af95d8e0c64c3dedfdd28c081046b905640
