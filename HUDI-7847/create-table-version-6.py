@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-import pyspark
-
 import utils
 
 
@@ -24,15 +22,15 @@ for case, payload in list_of_payloads:
               "    value string,"
               "    ts long,"
               "    for_partitions string"
-              ") using hudi"
-              "  tblproperties ("
+              ") USING hudi"
+              "  TBLPROPERTIES ("
               "    type = 'MERGE_ON_READ',"
               "    primaryKey = 'id',"
               "    preCombineField = 'ts',"
               "    hoodie.datasource.write.hive_style_partitioning = false,"
               "    hoodie.compaction.payload.class = 'org.apache.hudi.common.model." + payload + "'"
-              ") partitioned by (for_partitions)"
-              "  location '" + tmp_dir_path + "'")
+              ") PARTITIONED BY (for_partitions)"
+              "  LOCATION '" + tmp_dir_path + "'")
 
     spark.sql("INSERT INTO table_6_" + case + " VALUES (1, 'foo', 0, '0'), (2, 'bar', 1, '1')")
 
