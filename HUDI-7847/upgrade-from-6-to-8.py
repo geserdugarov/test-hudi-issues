@@ -48,12 +48,11 @@ for case, merge_mode in list_of_merge_modes:
     #     In 'MOR_custom' folder merge mode is 'CUSTOM'
 
 
-    # hudi_options = {
-    #     "hoodie.table.name": table_name,
-    #     "hoodie.metadata.enable": "false"
-    # }
-    # df_load = spark.read.format("org.apache.hudi").options(**hudi_options).load(tmp_dir_path)
-    # print("For case '" + case + "' rows from SELECT are: ", df_load.collect())
+    hudi_options = {
+        "hoodie.table.name": table_name
+    }
+    df_load = spark.read.format("org.apache.hudi").options(**hudi_options).load(tmp_dir_path)
+    print("For case '" + case + "' rows from SELECT are: ", df_load.collect())
 
     # Got
     # pyspark.errors.exceptions.captured.IllegalArgumentException: Completion time should not be empty
@@ -71,3 +70,5 @@ for case, merge_mode in list_of_merge_modes:
     #     at org.apache.hudi.common.table.HoodieTableMetaClient.getStorage(HoodieTableMetaClient.java:403)
     #     at org.apache.hudi.common.table.HoodieTableMetaClient.access$000(HoodieTableMetaClient.java:102)
     #     at org.apache.hudi.common.table.HoodieTableMetaClient$Builder.build(HoodieTableMetaClient.java:908)
+
+# For proper testing need to wait release of 0.16 version, which would be a bridge for migration from 0.x to 1.x
