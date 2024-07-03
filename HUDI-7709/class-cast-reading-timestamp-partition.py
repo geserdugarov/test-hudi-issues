@@ -46,4 +46,4 @@ df_load = spark.read.format("org.apache.hudi").options(**hudi_options).load(tmp_
 print("# of rows: ", df_load.count())
 print("Rows: ", df_load.collect())
 
-#
+# The issue is fixed by https://github.com/apache/hudi/pull/11501

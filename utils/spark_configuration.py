@@ -12,6 +12,7 @@ def init_spark_env(app_name: str) -> pyspark.sql.SparkSession:
                      .appName(app_name)
                      .config("spark.sql.warehouse.dir", configs['SPARK_WAREHOUSE_PATH'])
                      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+                     .config("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar")  # should be used by default, but it's broken sometimes
                      .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")  # to use Hudi specific syntax
                      # .config("spark.driver.extraJavaOptions", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006")  # for remote JVM debug
                      # .config("spark.worker.extraJavaOptions", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006")

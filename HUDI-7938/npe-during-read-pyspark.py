@@ -36,7 +36,7 @@ df_load = spark.read.format("org.apache.hudi").load(tmp_dir_path)
 print("Finished loading, started to collect")
 print("Rows: ", df_load.collect())
 
-# Got java.lang.NullPointerException
+# Got java.lang.NullPointerException if spark.kryo.registrator isn't passed
 #     at org.apache.hadoop.conf.Configuration.<init>(Configuration.java:842)
 #     at org.apache.hudi.storage.hadoop.HadoopStorageConfiguration.unwrapCopy(HadoopStorageConfiguration.java:73)
 #     at org.apache.hudi.storage.hadoop.HadoopStorageConfiguration.unwrapCopy(HadoopStorageConfiguration.java:36)
