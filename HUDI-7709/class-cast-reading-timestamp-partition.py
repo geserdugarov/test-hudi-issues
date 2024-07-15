@@ -46,4 +46,5 @@ df_load = spark.read.format("org.apache.hudi").options(**hudi_options).load(tmp_
 print("# of rows: ", df_load.count())
 print("Rows: ", df_load.collect())
 
-# The issue is fixed by https://github.com/apache/hudi/pull/11501
+# The issue is fixed by https://github.com/apache/hudi/pull/11501, which has been reverted by https://github.com/apache/hudi/pull/11586
+# Couldn't reproduce mentioned NullPointerException, but made another fix, https://github.com/apache/hudi/pull/11615
