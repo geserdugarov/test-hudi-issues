@@ -15,8 +15,6 @@ def prepare_offset_config(kafka_topic: str, partitions_num: int, set_offset: int
 
 # prepare environment
 script_name = os.path.basename(__file__)[:-3]
-tmp_dir_path = str(Path("/tmp") / script_name)
-utils.prepare_temp_dirs(tmp_dir_path)
 spark = utils.init_spark_env(script_name)
 
 # Kafka read configuration
@@ -27,6 +25,13 @@ batch_size_from_1_partition = 88000
 num_of_batches = 10
 
 # Hudi configuration
+# If HDFS is used, then `fs.default.name` should be set in Spark's ./conf/core-site.xml, as:
+#   <property>
+#       <name>fs.default.name</name>
+#       <value>hdfs://hdfs-namenode-ip:9000</value>
+#   </property>
+# For local write, use file:///tmp/some-path
+hudi_table_path = "hdfs://hdfs-namenode-ip:9000/some_path"
 table_name = "kafka_to_hudi"
 hudi_options = {
     "hoodie.table.name": f"{table_name}",
@@ -82,7 +87,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {table_name} ("
            "    primaryKey = 'l_orderkey,l_linenumber',"
            "    preCombineField = 'l_linenumber'"
            ") PARTITIONED BY (l_quantity)"
-          f"  LOCATION '{tmp_dir_path}'")
+          f"  LOCATION '{hudi_table_path}'")
 
 # we read batches of (batch_size_from_1_partition * num_of_partitions) size, and write them to Hudi
 for end_offset in range(batch_size_from_1_partition,
@@ -103,4 +108,4 @@ for end_offset in range(batch_size_from_1_partition,
         .format("org.apache.hudi") \
         .options(**hudi_options) \
         .mode("append") \
-        .save(tmp_dir_path)
+        .save(hudi_table_path)
