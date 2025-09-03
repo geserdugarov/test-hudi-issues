@@ -23,3 +23,11 @@ To switch versions:
 2. For PyCharm, add related `pyspark.zip` and `py4j-*-src.zip` to `Content root`.
 3. Build new version of [Hudi project](https://github.com/apache/hudi/) and copy new `hudi-spark*.*-bundle_2.1*-*.jar` to corresponding Spark home directory.
 4. Stop previously started Spark cluster, and start proper version of Spark. 
+
+## Read from Kafka
+To work with Kafka the corresponding JARs should be [downloaded](https://repo1.maven.org/maven2/org/apache/spark/) and added to the Spark cluster:
+
+- spark-streaming-kafka-0-10_2.12-*.jar
+- spark-token-provider-kafka-0-10_2.12-*.jar
+- kafka-clients-*.jar
+- commons-pool2-*.jar
