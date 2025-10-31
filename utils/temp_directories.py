@@ -14,3 +14,8 @@ def prepare_temp_dirs(tmp_dir_path: str, create: bool = False) -> None:
     warehouse_path = Path(configs['SPARK_WAREHOUSE_PATH'])
     if os.path.exists(warehouse_path):
         shutil.rmtree(warehouse_path)
+
+
+def create_dir_if_absent(dir_path: str) -> None:
+    if not os.path.exists(Path(dir_path)):
+        os.mkdir(Path(dir_path))

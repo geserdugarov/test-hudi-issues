@@ -1,16 +1,20 @@
 import os
 
 import pyspark
+import utils
 
 from .configuration import configs
 
 
 def init_spark_env(app_name: str) -> pyspark.sql.SparkSession:
     _set_spark_home()
+    utils.create_dir_if_absent("/tmp/spark-events")
     spark_session = (pyspark.sql.SparkSession.builder
                      .master(configs['SPARK_HOST_URL'])
                      .appName(app_name)
                      .config("spark.sql.warehouse.dir", configs['SPARK_WAREHOUSE_PATH'])
+                     .config("spark.eventLog.enabled", "true")
+                     .config("spark.eventLog.dir", "file:///tmp/spark-events")
                      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                      # .config("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar")  # should be used by default, but it's broken sometimes
                      .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")  # to use Hudi specific syntax
