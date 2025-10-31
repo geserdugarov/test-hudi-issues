@@ -12,6 +12,13 @@ def init_spark_env(app_name: str) -> pyspark.sql.SparkSession:
     spark_session = (pyspark.sql.SparkSession.builder
                      .master(configs['SPARK_HOST_URL'])
                      .appName(app_name)
+                     .config("spark.driver.cores", "1")
+                     .config("spark.driver.memory", "512m")
+                     .config("spark.driver.memoryOverhead", "512m")
+                     .config("spark.executor.instances", "4")
+                     .config("spark.executor.cores", "1")
+                     .config("spark.executor.memory", "2g")
+                     .config("spark.executor.memoryOverhead", "1g")
                      .config("spark.sql.warehouse.dir", configs['SPARK_WAREHOUSE_PATH'])
                      .config("spark.eventLog.enabled", "true")
                      .config("spark.eventLog.dir", "file:///tmp/spark-events")
