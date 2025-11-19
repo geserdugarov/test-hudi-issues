@@ -11,6 +11,7 @@ PyCharm is used for running scrtipts. Spark is run locally with one thread.
    - `pip install -r requirements.txt`
 
 3. Set `SPARK_HOME`, `SPARK_HOST_URL` and `SPARK_WAREHOUSE_PATH` in the `.env` file. Examples are presented in `.env-example`.
+4. JDK could be switched by changing `JAVA_HOME` in `.env` file.
 4. For PyCharm, add `pyspark.zip` and `py4j-*-src.zip` from `{SPARK_HOME}/python/lib/` into `Project` >> `Project Structure` >> `Content root`.
 5. Build intended version of [Hudi project](https://github.com/apache/hudi/) and copy `hudi-spark*.*-bundle_2.1*-*.jar` to `{SPARK_HOME}/jars/`.
 6. Start Spark cluster locally, `{SPARK_HOME}/sbin/start-all.sh`.

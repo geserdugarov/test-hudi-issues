@@ -20,8 +20,8 @@ spark = utils.init_spark_env(script_name)
 kafka_brokers = "ip1:port1,ip2:port2"
 kafka_topic = "tpch_60kk"
 kafka_partitions_num = 8
-batch_size_from_1_partition = 100000
-num_of_batches = 3
+batch_size_from_1_partition = 1_500_000
+num_of_batches = 5
 
 # Hudi configuration
 # If HDFS is used, then `fs.default.name` should be set in Spark's ./conf/core-site.xml, as:
@@ -35,15 +35,22 @@ table_name = "kafka_to_hudi"
 hudi_options = {
     "hoodie.table.name": f"{table_name}",
     "hoodie.datasource.write.table.type": "MERGE_ON_READ",
+    "hoodie.datasource.write.operation": "upsert",
     "hoodie.datasource.write.partitionpath.field": "",
     "hoodie.datasource.write.keygenerator.class": "org.apache.hudi.keygen.ComplexKeyGenerator",
     "hoodie.datasource.write.recordkey.field": "l_orderkey,l_linenumber",
     "hoodie.datasource.write.precombine.field": "l_linenumber",
+    "hoodie.parquet.compression.codec": "snappy",
+    "hoodie.logfile.data.block.format": "parquet",
+    "hoodie.compact.inline": "false",
+    "hoodie.compact.schedule.inline": "false",
+    "hoodie.compact.inline.max.delta.commits": "50",
+    "hoodie.clean.async.enabled": "false",
+    "hoodie.write.lock.provider": "org.apache.hudi.client.transaction.lock.InProcessLockProvider",
     "hoodie.index.type": "BUCKET",
-    "hoodie.index.bucket.engine": "SIMPLE",
-    "hoodie.bucket.index.num.buckets": f"{kafka_partitions_num}",
     "hoodie.bucket.index.hash.field": "l_orderkey,l_linenumber",
-    "hoodie.write.lock.provider": "org.apache.hudi.client.transaction.lock.InProcessLockProvider"
+    "hoodie.bucket.index.num.buckets": "16",
+    "hoodie.index.bucket.engine": "SIMPLE"
 }
 
 # data in Kafka topic is bytearray of csv string, this schema allows to parse this string
@@ -108,12 +115,12 @@ for end_offset in range(batch_size_from_1_partition,
         .option("kafka.bootstrap.servers", kafka_brokers) \
         .option("subscribe", kafka_topic) \
         .option("startingOffsets", prepare_offset_config(kafka_topic, kafka_partitions_num, start_offset)) \
-        .option("endingOffsets", prepare_offset_config(kafka_topic, kafka_partitions_num, end_offset)) \
+        .option("endingOffsets", prepare_offset_config(kafka_topic, kafka_partitions_num, end_offset) if end_offset < 5_500_000 else "latest") \
         .load() \
         .select(functions.col("value").cast("string").alias("csv_string")) \
         .select(functions.from_csv("csv_string", csv_schema, csv_opts).alias("parsed")) \
         .select("parsed.*") \
-        .repartition(kafka_partitions_num * 2, "l_orderkey", "l_linenumber")
+        .repartition(96, "l_orderkey", "l_linenumber")  # cores * executors * 4
 
     df.write \
         .format("org.apache.hudi") \
