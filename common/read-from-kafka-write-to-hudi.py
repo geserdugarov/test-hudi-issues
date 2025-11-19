@@ -14,7 +14,7 @@ def prepare_offset_config(kafka_topic: str, partitions_num: int, set_offset: int
 
 # prepare environment
 script_name = os.path.basename(__file__)[:-3]
-spark = utils.init_spark_env(script_name)
+spark = utils.init_spark_env_for_hudi(script_name)
 
 # Kafka read configuration
 kafka_brokers = "ip1:port1,ip2:port2"

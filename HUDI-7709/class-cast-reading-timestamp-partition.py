@@ -10,7 +10,7 @@ import utils
 script_name = os.path.basename(__file__)[:-3]
 tmp_dir_path = str(Path("/tmp") / script_name)
 utils.prepare_temp_dirs(tmp_dir_path)
-spark = utils.init_spark_env(script_name)
+spark = utils.init_spark_env_for_hudi(script_name)
 
 # prepare Spark DataFrame for further write
 input_data = [pyspark.sql.Row(id=1, value="foo", ts=1713033644000),

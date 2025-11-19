@@ -6,7 +6,7 @@ import utils
 
 # prepare environment
 script_name = os.path.basename(__file__)[:-3]
-spark = utils.init_spark_env(script_name)
+spark = utils.init_spark_env_for_hudi(script_name)
 
 # Hudi 1.0 beta1 should be used to read, and upgrade previously prepared tables
 list_of_merge_modes = [("event_time", "EVENT_TIME_ORDERING"),

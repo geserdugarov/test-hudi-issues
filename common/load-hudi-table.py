@@ -6,7 +6,7 @@ import utils
 
 # prepare environment
 script_name = os.path.basename(__file__)[:-3]
-spark = utils.init_spark_env(script_name)
+spark = utils.init_spark_env_for_hudi(script_name)
 
 # load Hudi table
 table_path = str(Path("/home/xxx/yyy/table_name"))

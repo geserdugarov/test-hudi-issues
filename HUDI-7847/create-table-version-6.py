@@ -6,7 +6,7 @@ import utils
 
 # prepare environment
 script_name = os.path.basename(__file__)[:-3]
-spark = utils.init_spark_env(script_name)
+spark = utils.init_spark_env_for_hudi(script_name)
 
 # Hudi 0.14 should be used, which would prepare Hudi table version 6 in a result
 list_of_payloads = [("event_time", "DefaultHoodieRecordPayload"),
