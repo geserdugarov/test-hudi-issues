@@ -1,15 +1,12 @@
 import os
 
 import pyspark
-import utils
 
 from .configuration import configs
 
 
 def _builder_spark_env_basic(app_name: str) -> pyspark.sql.SparkSession.Builder:
     _set_spark_home()
-    # for History Server
-    utils.create_dir_if_absent("/tmp/spark-history")
     builder = (pyspark.sql.SparkSession.builder
                .master(configs['SPARK_HOST_URL'])
                .appName(app_name)
@@ -24,7 +21,10 @@ def _builder_spark_env_basic(app_name: str) -> pyspark.sql.SparkSession.Builder:
                .config("spark.executor.memory", "8g")
                .config("spark.executor.memoryOverhead", "1g")
                .config("spark.eventLog.enabled", "true")
-               .config("spark.eventLog.dir", "file:/tmp/spark-history")
+               # event logs dir should be shared between driver and executors
+               .config("spark.eventLog.dir", "hdfs://hdfs-namenode-ip:9000/<user>/spark-data/history")
+               # default location for managed tables, crucial to set if Hive Metastore is used
+               .config("spark.sql.warehouse.dir", "hdfs://hdfs-namenode-ip:9000/<user>/spark-data/warehouse")
                # for remote JVM debug
                # .config("spark.driver.extraJavaOptions", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006")
                # .config("spark.executor.extraJavaOptions", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007")
@@ -69,7 +69,6 @@ def init_spark_env_for_lance(app_name: str) -> pyspark.sql.SparkSession:
                    )
     # Hive Metastore configuration
     builder.config("hive.metastore.uris", "thrift://localhost:9083")
-    builder.config("spark.sql.warehouse.dir", "/home/<user>/hms-data/warehouse/")
     # Lance catalog support and storing configs
     builder.config("spark.sql.catalog.lance", "com.lancedb.lance.spark.LanceNamespaceSparkCatalog")
     builder.config("spark.sql.catalog.lance.impl", "hive3")

@@ -30,23 +30,37 @@ num_of_batches = 5
 #       <value>hdfs://hdfs-namenode-ip:9000</value>
 #   </property>
 # For local write, use file:///tmp/some-path
-hudi_table_path = "hdfs://hdfs-namenode-ip:9000/some_path"
-table_name = "kafka_to_hudi"
+table_name = "kafka_to_hudi_mor_upsert"
+hudi_table_path = f"hdfs://hdfs-namenode-ip:9000/<user>/hudi/{table_name}"
 hudi_options = {
     "hoodie.table.name": f"{table_name}",
     "hoodie.datasource.write.table.type": "MERGE_ON_READ",
+    # operation
     "hoodie.datasource.write.operation": "upsert",
+    # partitioning
     "hoodie.datasource.write.partitionpath.field": "",
     "hoodie.datasource.write.keygenerator.class": "org.apache.hudi.keygen.ComplexKeyGenerator",
+    # keys
     "hoodie.datasource.write.recordkey.field": "l_orderkey,l_linenumber",
     "hoodie.datasource.write.precombine.field": "l_linenumber",
+    # parquet configuration
     "hoodie.parquet.compression.codec": "snappy",
     "hoodie.logfile.data.block.format": "parquet",
+    # table services configuration
     "hoodie.compact.inline": "false",
     "hoodie.compact.schedule.inline": "false",
     "hoodie.compact.inline.max.delta.commits": "50",
     "hoodie.clean.async.enabled": "false",
+    # recommendations from Hudi docs
+    # (input_data_size_MB / 120MB) = 16_000 / 120 ~= 128
+    # input_data_size_MB ~= (~200 MB per 1 bucket and 1 commit) * 16 buckets * 5 commits
+    "hoodie.bulkinsert.shuffle.parallelism": "128",
+    "hoodie.insert.shuffle.parallelism": "128",
+    "hoodie.upsert.shuffle.parallelism": "128",
+    "hoodie.delete.shuffle.parallelism": "128",
+    # lock provider
     "hoodie.write.lock.provider": "org.apache.hudi.client.transaction.lock.InProcessLockProvider",
+    # bucket index case
     "hoodie.index.type": "BUCKET",
     "hoodie.bucket.index.hash.field": "l_orderkey,l_linenumber",
     "hoodie.bucket.index.num.buckets": "16",
@@ -82,28 +96,28 @@ csv_opts = {
 
 # prepare Hudi table for write
 spark.sql(f"CREATE TABLE IF NOT EXISTS {table_name} ("
-           "  l_orderkey INT,"
-           "  l_partkey INT,"
-           "  l_suppkey INT,"
-           "  l_linenumber INT,"
-           "  l_quantity DECIMAL,"
-           "  l_extendedprice DECIMAL,"
-           "  l_discount decimal,"
-           "  l_tax decimal,"
-           "  l_returnflag VARCHAR(1),"
-           "  l_linestatus VARCHAR(1),"
-           "  l_shipdate DATE,"
-           "  l_commitdate DATE,"
-           "  l_receiptdate DATE,"
-           "  l_shipinstruct VARCHAR(25),"
-           "  l_shipmode VARCHAR(10),"
-           "  l_comment STRING"
-           ") USING hudi "
-           "  TBLPROPERTIES ("
-           "    type = 'MERGE_ON_READ',"
-           "    primaryKey = 'l_orderkey,l_linenumber',"
-           "    preCombineField = 'l_linenumber'"
-           ") LOCATION '{hudi_table_path}'")
+          "  l_orderkey INT,"
+          "  l_partkey INT,"
+          "  l_suppkey INT,"
+          "  l_linenumber INT,"
+          "  l_quantity DECIMAL,"
+          "  l_extendedprice DECIMAL,"
+          "  l_discount decimal,"
+          "  l_tax decimal,"
+          "  l_returnflag VARCHAR(1),"
+          "  l_linestatus VARCHAR(1),"
+          "  l_shipdate DATE,"
+          "  l_commitdate DATE,"
+          "  l_receiptdate DATE,"
+          "  l_shipinstruct VARCHAR(25),"
+          "  l_shipmode VARCHAR(10),"
+          "  l_comment STRING"
+          ") USING hudi "
+          "  TBLPROPERTIES ("
+          "    type = 'MERGE_ON_READ',"
+          "    primaryKey = 'l_orderkey,l_linenumber',"
+          "    preCombineField = 'l_linenumber'"
+          ") LOCATION '{hudi_table_path}'")
 
 # we read batches of (batch_size_from_1_partition * kafka_partitions_num) size, and write them to Hudi
 for end_offset in range(batch_size_from_1_partition,
@@ -119,8 +133,7 @@ for end_offset in range(batch_size_from_1_partition,
         .load() \
         .select(functions.col("value").cast("string").alias("csv_string")) \
         .select(functions.from_csv("csv_string", csv_schema, csv_opts).alias("parsed")) \
-        .select("parsed.*") \
-        .repartition(96, "l_orderkey", "l_linenumber")  # cores * executors * 4
+        .select("parsed.*")
 
     df.write \
         .format("org.apache.hudi") \
