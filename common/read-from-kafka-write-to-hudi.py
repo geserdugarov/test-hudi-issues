@@ -1,5 +1,3 @@
-import os
-
 import utils
 from pyspark.sql import functions
 
@@ -12,9 +10,10 @@ def prepare_offset_config(kafka_topic: str, partitions_num: int, set_offset: int
     return config
 
 
+table_name = "kafka_to_hudi_mor_upsert"
+
 # prepare environment
-script_name = os.path.basename(__file__)[:-3]
-spark = utils.init_spark_env_for_hudi(script_name)
+spark = utils.init_spark_env_for_hudi(table_name)
 
 # Kafka read configuration
 kafka_brokers = "ip1:port1,ip2:port2"
@@ -31,7 +30,6 @@ recs_per_partit_commit = 1_000_000
 total_commits_num = 4
 
 # Hudi write configuration
-table_name = "kafka_to_hudi_mor_upsert"
 table_type = "MERGE_ON_READ"
 operation_type = "upsert"
 # If HDFS is used, then `fs.default.name` should be set in Spark's ./conf/core-site.xml, as:
