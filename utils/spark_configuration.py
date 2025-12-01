@@ -50,6 +50,7 @@ def init_spark_env_for_hudi(app_name: str) -> pyspark.sql.SparkSession:
     builder.config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     # to use Hudi specific syntax
     builder.config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension")
+    builder.config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.hudi.catalog.HoodieCatalog")
     # try this if got NullPointerException in Kryo SerDe, but HoodieSparkKryoRegistrar should be used by default
     # builder.config("spark.kryo.registrator", "org.apache.spark.HoodieSparkKryoRegistrar")
     spark_session = builder.getOrCreate()
