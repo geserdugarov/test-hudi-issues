@@ -20,7 +20,8 @@ kafka_brokers = "ip1:port1,ip2:port2"
 kafka_topic = "tpch_60kk"
 kafka_partitions_num = 8
 # there are different max_offset in each topic partition
-# so, we limit read by corresponding min value
+# so, we set a threshold here to switch the last batch read
+# from the current start until latest in partitions
 min_of_end_offsets = 7_100_000
 # we read recs_per_partit_first records per partition first
 # and then recs_per_partit_ups records per partition
