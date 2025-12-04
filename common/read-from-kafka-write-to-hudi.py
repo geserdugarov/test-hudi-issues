@@ -103,7 +103,8 @@ csv_opts = {
 }
 
 # prepare Hudi table for write
-spark.sql(f"CREATE TABLE IF NOT EXISTS {table_name} ("
+spark.sql("CREATE DATABASE IF NOT EXISTS benchdb;")
+spark.sql(f"CREATE TABLE IF NOT EXISTS benchdb.{table_name} ("
           "  l_orderkey INT,"
           "  l_partkey INT,"
           "  l_suppkey INT,"
@@ -125,7 +126,7 @@ spark.sql(f"CREATE TABLE IF NOT EXISTS {table_name} ("
           f"   type = '{table_type}',"
           "    primaryKey = 'l_orderkey,l_linenumber',"
           "    preCombineField = 'l_linenumber'"
-          ") LOCATION '{hudi_table_path}'")
+          f") LOCATION '{hudi_table_path}'")
 
 # read Kafka topic partitions in batches by configured offsets,
 # and write to Hudi directly
